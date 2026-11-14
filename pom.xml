@@ -112,6 +112,7 @@
                             <imageName>dgoshi</imageName>
                             <buildArgs>
                                 <buildArg>--no-fallback</buildArg>
+                                <buildArg>--enable-native-access=ALL-UNNAMED</buildArg>
                             </buildArgs>
                         </configuration>
                         <executions>
