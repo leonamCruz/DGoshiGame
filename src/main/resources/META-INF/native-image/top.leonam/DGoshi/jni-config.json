@@ -1,0 +1,1 @@
+[{"name": "org.sqlite.NativeDB", "allDeclaredConstructors": true, "allDeclaredMethods": true, "allDeclaredFields": true}, {"name": "org.sqlite.DB", "allDeclaredConstructors": true, "allDeclaredMethods": true, "allDeclaredFields": true}, {"name": "org.sqlite.Stmt", "allDeclaredConstructors": true, "allDeclaredMethods": true, "allDeclaredFields": true}]

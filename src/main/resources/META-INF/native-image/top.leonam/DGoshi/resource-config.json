@@ -1,0 +1,1 @@
+{"resources": {"includes": [{"pattern": "org/sqlite/native/.*"}, {"pattern": "org/sqlite/.*\\.properties"}, {"pattern": ".*\\.properties"}, {"pattern": ".*\\.json"}, {"pattern": "META-INF/services/.*"}]}, "bundles": []}

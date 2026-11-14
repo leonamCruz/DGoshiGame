@@ -1,0 +1,117 @@
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  workflow_dispatch:
+
+env:
+  MAVEN_OPTS: -Xmx2g
+
+jobs:
+  # ================================================================
+  # Job 1: Fat JAR (com testes)
+  # ================================================================
+  jar:
+    name: "📦 JAR"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+
+      - name: "Build + Test"
+        run: mvn clean package -B
+
+      - name: "Upload JAR"
+        uses: actions/upload-artifact@v4
+        with:
+          name: DGoshi-jar
+          path: target/DGoshi-*.jar
+          if-no-files-found: error
+
+  # ================================================================
+  # Job 2: Binário nativo Linux
+  # ================================================================
+  native-linux:
+    name: "🐧 Linux (nativo)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          components: native-image
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+
+      - name: "Install build tools (GCC)"
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: "Build native"
+        run: mvn -Pnative clean package -DskipTests -B
+
+      - name: "Upload binary"
+        uses: actions/upload-artifact@v4
+        with:
+          name: DGoshi-linux
+          path: target/dgoshi
+          if-no-files-found: error
+
+  # ================================================================
+  # Job 3: Binário nativo Windows (.exe)
+  # ================================================================
+  native-windows:
+    name: "🪟 Windows (nativo)"
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          components: native-image
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: maven
+
+      - name: "Build native"
+        run: mvn -Pnative clean package -DskipTests -B
+
+      - name: "Upload exe"
+        uses: actions/upload-artifact@v4
+        with:
+          name: DGoshi-windows
+          path: target/dgoshi.exe
+          if-no-files-found: error
+
+  # ================================================================
+  # Job 4: Release (apenas em tags v*)
+  # ================================================================
+  release:
+    name: "🚀 Release"
+    needs: [jar, native-linux, native-windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: "Create GitHub Release"
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --generate-notes \
+            --title "DGoshi ${{ github.ref_name }}" \
+            artifacts/DGoshi-jar/*.jar \
+            artifacts/DGoshi-linux/dgoshi \
+            artifacts/DGoshi-windows/dgoshi.exe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
