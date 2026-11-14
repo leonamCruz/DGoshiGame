@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  MAVEN_OPTS: -Xmx2g
+  MAVEN_OPTS: -Xmx4g
 
 jobs:
   # ================================================================
@@ -22,6 +22,7 @@ jobs:
       - uses: graalvm/setup-graalvm@v1
         with:
           java-version: '25'
+          distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: maven
 
@@ -47,12 +48,12 @@ jobs:
       - uses: graalvm/setup-graalvm@v1
         with:
           java-version: '25'
-          components: native-image
+          distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: maven
 
       - name: "Install build tools (GCC)"
-        run: sudo apt-get update && sudo apt-get install -y build-essential
+        run: sudo apt-get update && sudo apt-get install -y build-essential zlib1g-dev
 
       - name: "Build native"
         run: mvn -Pnative clean package -DskipTests -B
@@ -76,11 +77,12 @@ jobs:
       - uses: graalvm/setup-graalvm@v1
         with:
           java-version: '25'
-          components: native-image
+          distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: maven
 
       - name: "Build native"
+        shell: cmd
         run: mvn -Pnative clean package -DskipTests -B
 
       - name: "Upload exe"
@@ -101,6 +103,8 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
